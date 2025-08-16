@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
 
 from src.config import Config
+from src.snapshots import Snapshot, scan_snapshots
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -67,36 +66,6 @@ def execute_snapshot_operation(
         logger.info(f"Created snapshot for pair '{pair.name}': {snapshot_path}")
 
 
-def scan_snapshots(directory: str | Path) -> list[str]:
-    """Scan a directory for BTRFS snapshots and return them sorted by name.
-
-    Returns a list of snapshot directory names sorted chronologically.
-    Only includes directories that match the timestamp pattern.
-    """
-    try:
-        if not os.path.exists(directory):
-            return []
-
-        # Pattern for snapshot names: YYYY-MM-DDTHH:MM:SS or YYYY-MM-DD-suffix
-        snapshot_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}")
-
-        snapshots: list[str] = []
-        for item in os.listdir(directory):
-            item_path = os.path.join(directory, item)
-            if os.path.isdir(item_path) and snapshot_pattern.match(item):
-                snapshots.append(item)
-
-        # Sort snapshots chronologically by name
-        # (timestamp format ensures lexicographic sorting = chronological sorting)
-        return sorted(snapshots)
-
-    except Exception as e:
-        logging.getLogger(__name__).warning(
-            f"Error scanning snapshots in {directory}: {e}"
-        )
-        return []
-
-
 def execute_backup_operation(
     config: Config, pair_name: str | None, dry_run: bool
 ) -> None:
@@ -126,10 +95,13 @@ def execute_backup_operation(
             logger.info(f"No snapshots found in source: {pair.source}")
             continue
 
+        # Convert to sets for efficient lookup
+        target_snapshot_names = {snap.name for snap in target_snapshots}
+
         # Determine which snapshots need to be backed up
-        snapshots_to_send: list[str] = []
+        snapshots_to_send: list[Snapshot] = []
         for snapshot in source_snapshots:
-            if snapshot not in target_snapshots:
+            if snapshot.name not in target_snapshot_names:
                 snapshots_to_send.append(snapshot)
 
         if not snapshots_to_send:
@@ -139,7 +111,7 @@ def execute_backup_operation(
         # Send snapshots with proper parent relationships
         previous_snapshot: str | None = None
         for snapshot in snapshots_to_send:
-            snapshot_path = f"{pair.source}/{snapshot}"
+            snapshot_path = f"{pair.source}/{snapshot.name}"
 
             if previous_snapshot is None:
                 # First snapshot or initial backup - no parent
@@ -155,7 +127,7 @@ def execute_backup_operation(
                 logger.info(f"Executing: {cmd}")
                 # TODO: Actually execute the command
 
-            previous_snapshot = snapshot
+            previous_snapshot = snapshot.name
 
 
 def execute_purge_operation(
@@ -182,68 +154,70 @@ def execute_purge_operation(
         )
 
         # Purge both source and target
-        _purge_location(pair.source, pair.retention_days, pair.retention_count, dry_run, logger)
-        _purge_location(pair.target, pair.target_retention_days, pair.target_retention_count, dry_run, logger)
+        _purge_location(
+            pair.source, pair.retention_days, pair.retention_count, dry_run, logger
+        )
+        _purge_location(
+            pair.target,
+            pair.target_retention_days,
+            pair.target_retention_count,
+            dry_run,
+            logger,
+        )
 
 
-def _purge_location(location: str, retention_days: int, retention_count: int, dry_run: bool, logger: logging.Logger) -> None:
+def _purge_location(
+    location: str,
+    retention_days: int,
+    retention_count: int,
+    dry_run: bool,
+    logger: logging.Logger,
+) -> None:
     """Purge old snapshots from a specific location based on retention policy."""
     from datetime import datetime, timedelta
-    
+
     # Scan for snapshots
     snapshots = scan_snapshots(location)
-    
+
     if not snapshots:
         logger.info(f"No snapshots found in {location}")
         return
-    
+
     # Calculate cutoff date
     cutoff_date = datetime.now() - timedelta(days=retention_days)
-    
+
     # Find snapshots that are old enough to be candidates for deletion
-    old_snapshots: list[str] = []
+    old_snapshots: list[Snapshot] = []
     for snapshot in snapshots:
-        try:
-            # Extract timestamp from snapshot name (YYYY-MM-DDTHH:MM:SS format)
-            timestamp_str = snapshot.split('-')[0:4]  # Get YYYY-MM-DDTHH parts
-            if len(timestamp_str) >= 3:
-                # Handle both old format (YYYY-MM-DD) and new format (YYYY-MM-DDTHH:MM:SS)
-                if 'T' in timestamp_str[2]:
-                    # New format: YYYY-MM-DDTHH:MM:SS
-                    date_part = '-'.join(timestamp_str[:3])  # YYYY-MM-DDTHH:MM:SS
-                    snapshot_date = datetime.strptime(date_part, "%Y-%m-%dT%H:%M:%S")
-                else:
-                    # Old format: YYYY-MM-DD
-                    date_part = '-'.join(timestamp_str[:3])  # YYYY-MM-DD
-                    snapshot_date = datetime.strptime(date_part, "%Y-%m-%d")
-                    
-                if snapshot_date < cutoff_date:
-                    old_snapshots.append(snapshot)
-        except (ValueError, IndexError):
-            # Skip snapshots that don't match expected format
-            logger.warning(f"Skipping snapshot with unexpected name format: {snapshot}")
-            continue
-    
+        if snapshot.timestamp < cutoff_date:
+            old_snapshots.append(snapshot)
+
     if not old_snapshots:
-        logger.info(f"No old snapshots found in {location} (older than {retention_days} days)")
+        logger.info(
+            f"No old snapshots found in {location} (older than {retention_days} days)"
+        )
         return
-    
+
     # Sort old snapshots chronologically (oldest first)
     old_snapshots.sort()
-    
+
     # Apply retention count - keep the newest N snapshots even if they're old
-    snapshots_to_delete: list[str] = []
+    snapshots_to_delete: list[Snapshot] = []
     if len(old_snapshots) > retention_count:
-        snapshots_to_delete = old_snapshots[:-retention_count]  # Remove oldest, keep newest N
-    
+        snapshots_to_delete = old_snapshots[
+            :-retention_count
+        ]  # Remove oldest, keep newest N
+
     if not snapshots_to_delete:
-        logger.info(f"All old snapshots in {location} are protected by retention count ({retention_count})")
+        logger.info(
+            f"All old snapshots in {location} are protected by retention count ({retention_count})"
+        )
         return
-    
+
     # Delete the snapshots
     for snapshot in snapshots_to_delete:
-        cmd = f"btrfs subvolume delete {location}/{snapshot}"
-        
+        cmd = f"btrfs subvolume delete {location}/{snapshot.name}"
+
         if dry_run:
             logger.info(f"[DRY-RUN] Would execute: {cmd}")
         else:

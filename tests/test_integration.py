@@ -1,6 +1,6 @@
 """Integration tests for main operations using reference-based testing."""
 
-from __future__ import annotations
+# import Any
 
 from tests.test_utils import run_integration_test, setup_test_dirs
 
@@ -106,9 +106,7 @@ class TestMainOperations:
         )
 
     def test_backup_single_snapshot_in_both(self):
-        source_path, target_path = setup_test_dirs(
-            ["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"]
-        )
+        source_path, target_path = setup_test_dirs(["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"])
 
         backup_pairs = [
             {
@@ -126,9 +124,7 @@ class TestMainOperations:
         )
 
     def test_backup_two_snapshots_in_source_none_in_target(self):
-        source_path, target_path = setup_test_dirs(
-            ["2025-08-16T10:00:00", "2025-08-16T11:00:00"], []
-        )
+        source_path, target_path = setup_test_dirs(["2025-08-16T10:00:00", "2025-08-16T11:00:00"], [])
 
         backup_pairs = [
             {

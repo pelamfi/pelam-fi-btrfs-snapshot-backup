@@ -60,9 +60,7 @@ class LogCapture:
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.handler.setLevel(level)
-        self.formatter = MockableFormatter(
-            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-        )
+        self.formatter = MockableFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
         self.handler.setFormatter(self.formatter)
 
     def set_time_func(self, time_func: Callable[[], float]) -> None:
@@ -211,9 +209,7 @@ def integration_test_context(
 
     # Calculate the fixed log time from the timestamp if not provided
     if fixed_log_time is None:
-        fixed_log_time = time.mktime(
-            time.strptime("2025-08-16 14:30:00", "%Y-%m-%d %H:%M:%S")
-        )
+        fixed_log_time = time.mktime(time.strptime("2025-08-16 14:30:00", "%Y-%m-%d %H:%M:%S"))
 
     config_path = create_temp_config(backup_pairs)
 
@@ -278,9 +274,7 @@ def create_snapshot_dirs(base_path: Path, snapshot_names: list[str]) -> None:
         (base_path / name).mkdir(exist_ok=True)
 
 
-def setup_test_dirs(
-    source_snapshots: list[str], target_snapshots: list[str]
-) -> tuple[Path, Path]:
+def setup_test_dirs(source_snapshots: list[str], target_snapshots: list[str]) -> tuple[Path, Path]:
     """Setup temporary directories with snapshot folders for testing.
 
     Returns tuple of (source_path, target_path).

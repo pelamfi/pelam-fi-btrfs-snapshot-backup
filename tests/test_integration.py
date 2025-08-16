@@ -26,9 +26,7 @@ def create_snapshot_dirs(base_path: Path, snapshot_names: list[str]) -> None:
         (base_path / name).mkdir(exist_ok=True)
 
 
-def setup_backup_test_dirs(
-    source_snapshots: list[str], target_snapshots: list[str]
-) -> tuple[Path, Path]:
+def setup_backup_test_dirs(source_snapshots: list[str], target_snapshots: list[str]) -> tuple[Path, Path]:
     """Setup temporary directories with snapshot folders for backup testing.
 
     Returns tuple of (source_path, target_path).
@@ -95,9 +93,7 @@ class TestMainOperations:
 
                     # Compare with reference
                     test_dir = Path(__file__).parent
-                    compare_with_reference(
-                        "snapshot_single_pair", actual_output, test_dir
-                    )
+                    compare_with_reference("snapshot_single_pair", actual_output, test_dir)
         finally:
             # Clean up temporary config file
             config_path.unlink()
@@ -154,9 +150,7 @@ class TestMainOperations:
 
                     # Compare with reference
                     test_dir = Path(__file__).parent
-                    compare_with_reference(
-                        "snapshot_all_pairs", actual_output, test_dir
-                    )
+                    compare_with_reference("snapshot_all_pairs", actual_output, test_dir)
         finally:
             # Clean up temporary config file
             config_path.unlink()
@@ -196,9 +190,7 @@ class TestMainOperations:
 
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "backup_no_snapshots_folder", actual_output, test_dir
-                )
+                compare_with_reference("backup_no_snapshots_folder", actual_output, test_dir)
         finally:
             config_path.unlink()
 
@@ -239,9 +231,7 @@ class TestMainOperations:
                 assert result == 0
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "backup_no_snapshots_in_either", actual_output, test_dir
-                )
+                compare_with_reference("backup_no_snapshots_in_either", actual_output, test_dir)
         finally:
             config_path.unlink()
 
@@ -282,9 +272,7 @@ class TestMainOperations:
                 assert result == 0
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "backup_single_snapshot_source_none_target", actual_output, test_dir
-                )
+                compare_with_reference("backup_single_snapshot_source_none_target", actual_output, test_dir)
         finally:
             config_path.unlink()
 
@@ -294,9 +282,7 @@ class TestMainOperations:
         # Setup: Same snapshot in both source and target
         # Expected result: Log message indicating backup is up to date
 
-        source_path, target_path = setup_backup_test_dirs(
-            ["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"]
-        )
+        source_path, target_path = setup_backup_test_dirs(["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"])
 
         backup_pairs: list[dict[str, str | int]] = [
             {
@@ -327,9 +313,7 @@ class TestMainOperations:
                 assert result == 0
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "backup_single_snapshot_in_both", actual_output, test_dir
-                )
+                compare_with_reference("backup_single_snapshot_in_both", actual_output, test_dir)
         finally:
             config_path.unlink()
 
@@ -339,9 +323,7 @@ class TestMainOperations:
         # Setup: Two snapshots in source (chronological order), empty target
         # Expected result: Two btrfs send commands, second using -p flag with first as parent
 
-        source_path, target_path = setup_backup_test_dirs(
-            ["2025-08-16T10:00:00", "2025-08-16T11:00:00"], []
-        )
+        source_path, target_path = setup_backup_test_dirs(["2025-08-16T10:00:00", "2025-08-16T11:00:00"], [])
 
         backup_pairs: list[dict[str, str | int]] = [
             {
@@ -372,9 +354,7 @@ class TestMainOperations:
                 assert result == 0
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "backup_two_snapshots_source_none_target", actual_output, test_dir
-                )
+                compare_with_reference("backup_two_snapshots_source_none_target", actual_output, test_dir)
         finally:
             config_path.unlink()
 
@@ -418,8 +398,6 @@ class TestMainOperations:
                 assert result == 0
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "backup_three_snapshots_source_one_target", actual_output, test_dir
-                )
+                compare_with_reference("backup_three_snapshots_source_one_target", actual_output, test_dir)
         finally:
             config_path.unlink()

@@ -33,16 +33,21 @@ tests/
 ## Running and Updating Tests
 
 ```bash
+# Run all tests, linting etc
+./build.sh
+
 # Run all tests
 uv run pytest tests/ -v
 
 # Run specific integration test
 uv run pytest tests/test_integration.py::TestMainOperations::test_snapshot_operation_single_pair -v
 
-# To update a reference file after intentional changes:
-# 1. Run the test (it will fail and create .actual.txt file)
-# 2. Review the differences
-# 3. If correct: mv tests/references/test_name.actual.txt tests/references/test_name.txt
+# To update test references run interactively
+./update-test-references.sh
+
+# Or simply update immediately
+./update-test-references.sh -y
+
 ```
 
 This testing approach ensures that any changes to command generation, logging format, or program behavior are immediately visible and must be explicitly approved by updating the reference files.

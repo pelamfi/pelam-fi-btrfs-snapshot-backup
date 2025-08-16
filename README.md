@@ -13,13 +13,9 @@ A Python-based tool for managing BTRFS snapshots and incremental backups using B
 
 ## Quick Start
 
-```bash
-# Install uv (see: https://docs.astral.sh/uv/)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+- Install [uv](https://docs.astral.sh/uv/)
 
-# Setup and run checks
-git clone <repository>
-cd pelam-fi-btrfs-snapshot-backup
+```bash
 ./build.sh
 ```
 

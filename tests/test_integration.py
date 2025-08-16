@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -11,6 +12,10 @@ from tests.test_utils import LogCapture, compare_with_reference, create_temp_con
 # Add the project root to Python path to import backup_script
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import backup_script
+
+# Fixed timestamp for deterministic tests
+FIXED_TIMESTAMP = "2025-08-16T14:30:00"
+FIXED_LOG_TIME = time.mktime(time.strptime("2025-08-16 14:30:00", "%Y-%m-%d %H:%M:%S"))
 
 
 class TestMainOperations:
@@ -37,12 +42,13 @@ class TestMainOperations:
         try:
             # Mock datetime to get consistent timestamps
             with patch("backup_script.datetime") as mock_datetime:
-                mock_datetime.now.return_value.strftime.return_value = (
-                    "2025-08-16T14:30:00"
-                )
+                mock_datetime.now.return_value.strftime.return_value = FIXED_TIMESTAMP
 
-                # Capture logging output
+                # Capture logging output with fixed timestamp
                 with LogCapture() as log_capture:
+                    # Set fixed time for logging
+                    log_capture.set_time_func(lambda: FIXED_LOG_TIME)
+
                     # Mock sys.argv to simulate command line
                     test_args = [
                         "backup_script.py",
@@ -95,12 +101,13 @@ class TestMainOperations:
         try:
             # Mock datetime to get consistent timestamps
             with patch("backup_script.datetime") as mock_datetime:
-                mock_datetime.now.return_value.strftime.return_value = (
-                    "2025-08-16T14:30:00"
-                )
+                mock_datetime.now.return_value.strftime.return_value = FIXED_TIMESTAMP
 
-                # Capture logging output
+                # Capture logging output with fixed timestamp
                 with LogCapture() as log_capture:
+                    # Set fixed time for logging
+                    log_capture.set_time_func(lambda: FIXED_LOG_TIME)
+
                     # Mock sys.argv to simulate command line
                     test_args = [
                         "backup_script.py",

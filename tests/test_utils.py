@@ -4,10 +4,47 @@ from __future__ import annotations
 
 import logging
 import tempfile
+import time
+from collections.abc import Callable
 from io import StringIO
 from pathlib import Path
 from types import TracebackType
-from typing import Any
+from typing import Any, Literal
+
+
+class MockableFormatter(logging.Formatter):
+    """A logging formatter that allows mocking the time function.
+
+    This is useful for deterministic tests.
+    """
+
+    def __init__(
+        self,
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        style: Literal["%", "{", "$"] = "%",
+        validate: bool = True,
+        *,
+        defaults: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(fmt, datefmt, style, validate, defaults=defaults)
+        # Use a mockable time function
+        self._time_func: Callable[[], float] = time.time
+
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
+        """Format the time using our mockable time function."""
+        ct = self.converter(self._time_func())
+        if datefmt:
+            s = time.strftime(datefmt, ct)
+        else:
+            s = time.strftime(self.default_time_format, ct)
+            if self.default_msec_format:
+                s = self.default_msec_format % (s, record.msecs)
+        return s
+
+    def set_time_func(self, time_func: Callable[[], float]) -> None:
+        """Set a custom time function (useful for testing)."""
+        self._time_func = time_func
 
 
 class LogCapture:
@@ -19,10 +56,14 @@ class LogCapture:
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.handler.setLevel(level)
-        self.formatter = logging.Formatter(
+        self.formatter = MockableFormatter(
             "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
         self.handler.setFormatter(self.formatter)
+
+    def set_time_func(self, time_func: Callable[[], float]) -> None:
+        """Set a custom time function for deterministic timestamps."""
+        self.formatter.set_time_func(time_func)
 
     def __enter__(self) -> LogCapture:
         if self.logger_name:

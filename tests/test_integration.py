@@ -123,7 +123,9 @@ class TestMainOperations:
         )
 
     def test_backup_single_snapshot_in_both(self):
-        source_path, target_path = setup_test_dirs(["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"])
+        source_path, target_path = setup_test_dirs(
+            ["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"]
+        )
 
         backup_pairs = [
             BackupPair(
@@ -145,7 +147,9 @@ class TestMainOperations:
         )
 
     def test_backup_two_snapshots_in_source_none_in_target(self):
-        source_path, target_path = setup_test_dirs(["2025-08-16T10:00:00", "2025-08-16T11:00:00"], [])
+        source_path, target_path = setup_test_dirs(
+            ["2025-08-16T10:00:00", "2025-08-16T11:00:00"], []
+        )
 
         backup_pairs = [
             BackupPair(
@@ -190,6 +194,47 @@ class TestMainOperations:
 
         run_integration_test(
             "backup_three_snapshots_source_one_target",
+            backup_pairs,
+            "backup",
+            temp_paths_to_normalize=[str(source_path.parent)],
+        )
+
+    def test_backup_source_has_older_snapshots_missing_from_target(self):
+        """Test when source has older snapshots that don't exist in target.
+
+        This tests the scenario where the source has snapshots that are older
+        than the newest snapshot in the target, but these older snapshots don't
+        exist in the target. These should be skipped with a warning to maintain
+        the sequential parent chain.
+        """
+        source_path, target_path = setup_test_dirs(
+            [
+                "2025-08-16T14:00:00-latest",  # Latest in source
+                "2025-08-16T13:00:00-middle",  # Newer than target latest
+                "2025-08-16T11:00:00-missing",  # Older than target latest, missing from target
+                "2025-08-16T10:00:00-missing2",  # Older than target latest, missing from target
+                "2025-08-16T09:00:00-shared",  # Exists in both
+            ],
+            [
+                "2025-08-16T12:00:00-target-latest",  # Latest in target
+                "2025-08-16T09:00:00-shared",  # Shared with source
+            ],
+        )
+
+        backup_pairs = [
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
+        ]
+
+        run_integration_test(
+            "backup_source_has_older_snapshots_missing_from_target",
             backup_pairs,
             "backup",
             temp_paths_to_normalize=[str(source_path.parent)],

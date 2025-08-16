@@ -32,6 +32,45 @@ NOTE: Snapshots must maintain strict order because btrfs-send maintains block re
 - `pytest` for tests
 - `build.sh` gets possible dependencies and runs all checks and tests
 
+# Development Setup
+
+## Quick Start
+```bash
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and setup
+git clone <repository>
+cd pelam-fi-btrfs-snapshot-backup
+./build.sh
+```
+
+## Project Structure
+```
+├── src/                    # Source code
+├── tests/                  # Test files
+├── backup_script.py        # Main entry point
+├── backup_config.toml      # Sample configuration
+├── pyproject.toml          # Project configuration (uv, ruff, pytest)
+└── build.sh               # Development script
+```
+
+## Development Commands
+```bash
+# Install/update dependencies
+uv sync --dev
+
+# Run formatting and linting
+uv run ruff format src tests
+uv run ruff check src tests --fix
+
+# Run tests with coverage
+uv run pytest tests/ -v --cov=src --cov-report=term-missing
+
+# Run everything (build.sh does all of the above)
+./build.sh
+```
+
 # Command Line Design
 
 The script supports three main operations, each targeting a specific backup pair defined in the configuration:

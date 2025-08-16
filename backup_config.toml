@@ -1,0 +1,21 @@
+[global]
+default_verbose = false
+dry_run = false
+
+[[backup_pairs]]
+name = "root_system"
+source = "/btrfs/btrfs-subvolumes/root"
+target = "/backup/btrfs-subvolumes/root"
+retention_days = 30
+retention_count = 10
+target_retention_days = 90
+target_retention_count = 20
+
+[[backup_pairs]]
+name = "home_directories"
+source = "/btrfs/btrfs-subvolumes/home"
+target = "/backup/btrfs-subvolumes/home"
+retention_days = 14
+retention_count = 15
+target_retention_days = 60
+target_retention_count = 30

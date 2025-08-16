@@ -181,17 +181,74 @@ def execute_purge_operation(
             f"Retention policy: {pair.retention_days} days, {pair.retention_count} snapshots"
         )
 
-        # Mock example of purge commands
-        old_snapshots = ["2025-01-01T10:00:00-old", "2025-01-02T10:00:00-ancient"]
+        # Purge both source and target
+        _purge_location(pair.source, pair.retention_days, pair.retention_count, dry_run, logger)
+        _purge_location(pair.target, pair.target_retention_days, pair.target_retention_count, dry_run, logger)
 
-        for snapshot in old_snapshots:
-            cmd = f"btrfs subvolume delete {pair.source}/{snapshot}"
 
-            if dry_run:
-                logger.info(f"[DRY-RUN] Would execute: {cmd}")
-            else:
-                logger.info(f"Executing: {cmd}")
-                # TODO: Actually execute the command
+def _purge_location(location: str, retention_days: int, retention_count: int, dry_run: bool, logger: logging.Logger) -> None:
+    """Purge old snapshots from a specific location based on retention policy."""
+    from datetime import datetime, timedelta
+    
+    # Scan for snapshots
+    snapshots = scan_snapshots(location)
+    
+    if not snapshots:
+        logger.info(f"No snapshots found in {location}")
+        return
+    
+    # Calculate cutoff date
+    cutoff_date = datetime.now() - timedelta(days=retention_days)
+    
+    # Find snapshots that are old enough to be candidates for deletion
+    old_snapshots: list[str] = []
+    for snapshot in snapshots:
+        try:
+            # Extract timestamp from snapshot name (YYYY-MM-DDTHH:MM:SS format)
+            timestamp_str = snapshot.split('-')[0:4]  # Get YYYY-MM-DDTHH parts
+            if len(timestamp_str) >= 3:
+                # Handle both old format (YYYY-MM-DD) and new format (YYYY-MM-DDTHH:MM:SS)
+                if 'T' in timestamp_str[2]:
+                    # New format: YYYY-MM-DDTHH:MM:SS
+                    date_part = '-'.join(timestamp_str[:3])  # YYYY-MM-DDTHH:MM:SS
+                    snapshot_date = datetime.strptime(date_part, "%Y-%m-%dT%H:%M:%S")
+                else:
+                    # Old format: YYYY-MM-DD
+                    date_part = '-'.join(timestamp_str[:3])  # YYYY-MM-DD
+                    snapshot_date = datetime.strptime(date_part, "%Y-%m-%d")
+                    
+                if snapshot_date < cutoff_date:
+                    old_snapshots.append(snapshot)
+        except (ValueError, IndexError):
+            # Skip snapshots that don't match expected format
+            logger.warning(f"Skipping snapshot with unexpected name format: {snapshot}")
+            continue
+    
+    if not old_snapshots:
+        logger.info(f"No old snapshots found in {location} (older than {retention_days} days)")
+        return
+    
+    # Sort old snapshots chronologically (oldest first)
+    old_snapshots.sort()
+    
+    # Apply retention count - keep the newest N snapshots even if they're old
+    snapshots_to_delete: list[str] = []
+    if len(old_snapshots) > retention_count:
+        snapshots_to_delete = old_snapshots[:-retention_count]  # Remove oldest, keep newest N
+    
+    if not snapshots_to_delete:
+        logger.info(f"All old snapshots in {location} are protected by retention count ({retention_count})")
+        return
+    
+    # Delete the snapshots
+    for snapshot in snapshots_to_delete:
+        cmd = f"btrfs subvolume delete {location}/{snapshot}"
+        
+        if dry_run:
+            logger.info(f"[DRY-RUN] Would execute: {cmd}")
+        else:
+            logger.info(f"Executing: {cmd}")
+            # TODO: Actually execute the command
 
 
 def create_parser() -> argparse.ArgumentParser:

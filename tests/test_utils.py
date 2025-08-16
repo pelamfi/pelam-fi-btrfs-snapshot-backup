@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import logging
 import re
+import sys
 import tempfile
 import time
 from collections.abc import Callable
+from contextlib import contextmanager
 from io import StringIO
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Literal
+from unittest.mock import patch
 
 
 class MockableFormatter(logging.Formatter):
@@ -57,7 +60,9 @@ class LogCapture:
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.handler.setLevel(level)
-        self.formatter = MockableFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        self.formatter = MockableFormatter(
+            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        )
         self.handler.setFormatter(self.formatter)
 
     def set_time_func(self, time_func: Callable[[], float]) -> None:
@@ -184,3 +189,107 @@ def compare_with_reference(
             f"Actual output written to: {actual_file}\n"
             f"To update reference: mv {actual_file} {reference_file}"
         )
+
+
+@contextmanager
+def integration_test_context(
+    backup_pairs: list[dict[str, Any]],
+    operation: str,
+    pair_or_all: str = "test_root",
+    suffix: str | None = None,
+    fixed_timestamp: str = "2025-08-16T14:30:00",
+    fixed_log_time: float | None = None,
+):
+    """Context manager for integration tests that handles common setup/teardown."""
+    # Add the project root to Python path to import backup_script
+    project_root = str(Path(__file__).parent.parent)
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
+    # Import here to avoid circular import issues
+    import backup_script  # noqa: PLC0415
+
+    # Calculate the fixed log time from the timestamp if not provided
+    if fixed_log_time is None:
+        fixed_log_time = time.mktime(
+            time.strptime("2025-08-16 14:30:00", "%Y-%m-%d %H:%M:%S")
+        )
+
+    config_path = create_temp_config(backup_pairs)
+
+    try:
+        # Build test args
+        test_args = [
+            "backup_script.py",
+            f"--{operation}",
+            "--dry-run",
+            "--verbose",
+            f"--config={config_path}",
+        ]
+
+        if pair_or_all == "all":
+            test_args.insert(2, "--all")
+        else:
+            test_args.insert(2, f"--pair={pair_or_all}")
+
+        if suffix:
+            test_args.insert(-3, f"--suffix={suffix}")
+
+        # Mock datetime and capture logs
+        with patch("backup_script.datetime") as mock_datetime:
+            mock_datetime.now.return_value.strftime.return_value = fixed_timestamp
+
+            with LogCapture() as log_capture:
+                log_capture.set_time_func(lambda: fixed_log_time)
+
+                with patch.object(sys, "argv", test_args):
+                    result = backup_script.main()
+
+                yield result, log_capture.get_output()
+    finally:
+        config_path.unlink()
+
+
+def run_integration_test(
+    test_name: str,
+    backup_pairs: list[dict[str, Any]],
+    operation: str,
+    pair_or_all: str = "test_root",
+    suffix: str | None = None,
+    temp_paths_to_normalize: list[str] | None = None,
+    expected_result: int | None = 0,
+) -> None:
+    """Run a standard integration test with reference comparison."""
+    test_dir = Path(__file__).parent
+
+    with integration_test_context(backup_pairs, operation, pair_or_all, suffix) as (
+        result,
+        output,
+    ):
+        if expected_result is not None:
+            assert result == expected_result
+        compare_with_reference(test_name, output, test_dir, temp_paths_to_normalize)
+
+
+def create_snapshot_dirs(base_path: Path, snapshot_names: list[str]) -> None:
+    """Create empty snapshot directories with given names."""
+    base_path.mkdir(parents=True, exist_ok=True)
+    for name in snapshot_names:
+        (base_path / name).mkdir(exist_ok=True)
+
+
+def setup_test_dirs(
+    source_snapshots: list[str], target_snapshots: list[str]
+) -> tuple[Path, Path]:
+    """Setup temporary directories with snapshot folders for testing.
+
+    Returns tuple of (source_path, target_path).
+    """
+    temp_dir = Path(tempfile.mkdtemp())
+    source_path = temp_dir / "source"
+    target_path = temp_dir / "target"
+
+    create_snapshot_dirs(source_path, source_snapshots)
+    create_snapshot_dirs(target_path, target_snapshots)
+
+    return source_path, target_path

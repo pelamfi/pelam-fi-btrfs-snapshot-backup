@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -24,6 +25,39 @@ def setup_logging(verbose: bool = False) -> None:
         format="%(asctime)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+
+
+def execute_command(cmd: str, logger: logging.Logger) -> None:
+    """Execute a shell command and handle errors.
+
+    Args:
+        cmd: The command to execute
+        logger: Logger instance for output
+
+    Raises:
+        SystemExit: If the command fails with non-zero exit code
+    """
+    logger.info(f"Executing: {cmd}")
+
+    try:
+        result = subprocess.run(
+            cmd, shell=True, check=True, capture_output=True, text=True
+        )
+
+        # Log stdout if present
+        if result.stdout.strip():
+            logger.debug(f"Command output: {result.stdout.strip()}")
+
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}: {cmd}")
+        if e.stderr:
+            logger.error(f"Error output: {e.stderr.strip()}")
+        if e.stdout:
+            logger.error(f"Standard output: {e.stdout.strip()}")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error executing command '{cmd}': {e}")
+        sys.exit(1)
 
 
 def execute_snapshot_operation(
@@ -60,8 +94,7 @@ def execute_snapshot_operation(
         if dry_run:
             logger.info(f"[DRY-RUN] Would execute: {cmd}")
         else:
-            logger.info(f"Executing: {cmd}")
-            # TODO: Actually execute the command
+            execute_command(cmd, logger)
 
         logger.info(f"Created snapshot for pair '{pair.name}': {snapshot_path}")
 
@@ -97,7 +130,7 @@ def execute_backup_operation(
 
         # Find the latest snapshot that exists in both source and target
         target_snapshot_names = {snap.name for snap in target_snapshots}
-        
+
         # Find the latest common snapshot (latest timestamp that exists in both)
         latest_common_snapshot: Snapshot | None = None
         for snapshot in reversed(source_snapshots):  # Start from newest
@@ -115,12 +148,12 @@ def execute_backup_operation(
         # and that don't already exist in the target
         snapshots_to_send: list[Snapshot] = []
         skipped_snapshots: list[Snapshot] = []
-        
+
         for snapshot in source_snapshots:
             if snapshot.name in target_snapshot_names:
                 # Already exists in target, skip
                 continue
-                
+
             if latest_target_snapshot is None:
                 # No snapshots in target, can send all missing ones
                 snapshots_to_send.append(snapshot)
@@ -141,14 +174,18 @@ def execute_backup_operation(
 
         if not snapshots_to_send:
             if skipped_snapshots:
-                logger.info(f"No snapshots to send for pair '{pair.name}' (some were skipped due to parent chain issues)")
+                logger.info(
+                    f"No snapshots to send for pair '{pair.name}' (some were skipped due to parent chain issues)"
+                )
             else:
                 logger.info(f"Backup is up to date for pair '{pair.name}'")
             continue
 
         # Send snapshots with proper parent relationships
-        previous_snapshot = latest_common_snapshot.name if latest_common_snapshot else None
-        
+        previous_snapshot = (
+            latest_common_snapshot.name if latest_common_snapshot else None
+        )
+
         for snapshot in snapshots_to_send:
             snapshot_path = f"{pair.source}/{snapshot.name}"
 
@@ -163,8 +200,7 @@ def execute_backup_operation(
             if dry_run:
                 logger.info(f"[DRY-RUN] Would execute: {cmd}")
             else:
-                logger.info(f"Executing: {cmd}")
-                # TODO: Actually execute the command
+                execute_command(cmd, logger)
 
             previous_snapshot = snapshot.name
 
@@ -257,8 +293,7 @@ def _purge_location(
         if dry_run:
             logger.info(f"[DRY-RUN] Would execute: {cmd}")
         else:
-            logger.info(f"Executing: {cmd}")
-            # TODO: Actually execute the command
+            execute_command(cmd, logger)
 
 
 def create_parser() -> argparse.ArgumentParser:

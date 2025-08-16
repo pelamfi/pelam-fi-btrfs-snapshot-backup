@@ -1,15 +1,17 @@
+# Global configuration
 [global]
-default_verbose = false
-dry_run = false
+default_verbose = false  # Enable verbose output by default
+dry_run = false         # Enable dry-run mode by default
 
+# Each backup pair defines a source/target relationship
 [[backup_pairs]]
 name = "root_system"
-source = "/btrfs/btrfs-subvolumes/root"
-target = "/backup/btrfs-subvolumes/root"
-retention_days = 30
-retention_count = 10
-target_retention_days = 90
-target_retention_count = 20
+source = "/btrfs/btrfs-subvolumes/root"    # Source BTRFS subvolume path
+target = "/backup/btrfs-subvolumes/root"   # Target backup location
+retention_days = 30      # Days to keep snapshots in source
+retention_count = 10     # Minimum snapshots to keep in source (larger applies)
+target_retention_days = 90    # Days to keep backups in target
+target_retention_count = 20   # Minimum backups to keep in target
 
 [[backup_pairs]]
 name = "home_directories"

@@ -26,9 +26,7 @@ def create_snapshot_dirs(base_path: Path, snapshot_names: list[str]) -> None:
         (base_path / name).mkdir(exist_ok=True)
 
 
-def setup_backup_test_dirs(
-    source_snapshots: list[str], target_snapshots: list[str]
-) -> tuple[Path, Path]:
+def setup_backup_test_dirs(source_snapshots: list[str], target_snapshots: list[str]) -> tuple[Path, Path]:
     """Setup temporary directories with snapshot folders for backup testing.
 
     Returns tuple of (source_path, target_path).
@@ -43,9 +41,7 @@ def setup_backup_test_dirs(
     return source_path, target_path
 
 
-def setup_purge_test_dirs(
-    source_snapshots: list[str], target_snapshots: list[str]
-) -> tuple[Path, Path]:
+def setup_purge_test_dirs(source_snapshots: list[str], target_snapshots: list[str]) -> tuple[Path, Path]:
     """Setup temporary directories with snapshot folders for purge testing.
 
     Returns tuple of (source_path, target_path).
@@ -105,9 +101,7 @@ class TestMainOperations:
 
                     # Compare with reference
                     test_dir = Path(__file__).parent
-                    compare_with_reference(
-                        "snapshot_single_pair", actual_output, test_dir
-                    )
+                    compare_with_reference("snapshot_single_pair", actual_output, test_dir)
         finally:
             # Clean up temporary config file
             config_path.unlink()
@@ -164,9 +158,7 @@ class TestMainOperations:
 
                     # Compare with reference
                     test_dir = Path(__file__).parent
-                    compare_with_reference(
-                        "snapshot_all_pairs", actual_output, test_dir
-                    )
+                    compare_with_reference("snapshot_all_pairs", actual_output, test_dir)
         finally:
             # Clean up temporary config file
             config_path.unlink()
@@ -206,9 +198,7 @@ class TestMainOperations:
 
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "backup_no_snapshots_folder", actual_output, test_dir
-                )
+                compare_with_reference("backup_no_snapshots_folder", actual_output, test_dir)
         finally:
             config_path.unlink()
 
@@ -314,9 +304,7 @@ class TestMainOperations:
         # Setup: Same snapshot in both source and target
         # Expected result: Log message indicating backup is up to date
 
-        source_path, target_path = setup_backup_test_dirs(
-            ["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"]
-        )
+        source_path, target_path = setup_backup_test_dirs(["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"])
 
         backup_pairs: list[dict[str, str | int]] = [
             {
@@ -364,9 +352,7 @@ class TestMainOperations:
         # Setup: Two snapshots in source (chronological order), empty target
         # Expected result: Two btrfs send commands, second using -p flag with first as parent
 
-        source_path, target_path = setup_backup_test_dirs(
-            ["2025-08-16T10:00:00", "2025-08-16T11:00:00"], []
-        )
+        source_path, target_path = setup_backup_test_dirs(["2025-08-16T10:00:00", "2025-08-16T11:00:00"], [])
 
         backup_pairs: list[dict[str, str | int]] = [
             {
@@ -502,9 +488,7 @@ class TestMainOperations:
 
                 actual_output = log_capture.get_output()
                 test_dir = Path(__file__).parent
-                compare_with_reference(
-                    "purge_no_snapshots_folder", actual_output, test_dir
-                )
+                compare_with_reference("purge_no_snapshots_folder", actual_output, test_dir)
         finally:
             config_path.unlink()
 
@@ -685,9 +669,7 @@ class TestMainOperations:
             "2025-08-15T10:00:00-recent",  # Recent, protected by age
             "2025-08-16T10:00:00-newest",  # Recent, protected by age
         ]
-        source_path, target_path = setup_purge_test_dirs(
-            mixed_snapshots, mixed_snapshots
-        )
+        source_path, target_path = setup_purge_test_dirs(mixed_snapshots, mixed_snapshots)
 
         backup_pairs: list[dict[str, str | int]] = [
             {

@@ -1,0 +1,5 @@
+2025-08-16 14:30:00 - INFO - Loaded configuration with 1 backup pairs
+2025-08-16 14:30:00 - INFO - Processing backup for pair 'test_root'
+2025-08-16 14:30:00 - INFO - Source: [TEMP_FOLDER]/source -> Target: [TEMP_FOLDER]/target
+2025-08-16 14:30:00 - INFO - [DRY-RUN] Would execute: btrfs send -p [TEMP_FOLDER]/source/previous-snapshot [TEMP_FOLDER]/source/latest-snapshot | btrfs receive [TEMP_FOLDER]/target/
+2025-08-16 14:30:00 - INFO - Operation completed successfully

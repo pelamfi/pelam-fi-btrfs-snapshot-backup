@@ -1,7 +1,6 @@
 """Integration tests for main operations using reference-based testing."""
 
-# import Any
-
+from src.config import BackupPair
 from tests.test_utils import run_integration_test, setup_test_dirs
 
 
@@ -10,15 +9,15 @@ class TestMainOperations:
 
     def test_snapshot_operation_single_pair(self):
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": "/tmp/test/source/root",
-                "target": "/tmp/test/target/root",
-                "retention_days": 30,
-                "retention_count": 10,
-                "target_retention_days": 90,
-                "target_retention_count": 20,
-            }
+            BackupPair(
+                name="test_root",
+                source="/tmp/test/source/root",
+                target="/tmp/test/target/root",
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
         ]
 
         run_integration_test(
@@ -31,18 +30,24 @@ class TestMainOperations:
 
     def test_snapshot_operation_all_pairs(self):
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": "/tmp/test/source/root",
-                "target": "/tmp/test/target/root",
-            },
-            {
-                "name": "test_home",
-                "source": "/tmp/test/source/home",
-                "target": "/tmp/test/target/home",
-                "retention_days": 14,
-                "retention_count": 15,
-            },
+            BackupPair(
+                name="test_root",
+                source="/tmp/test/source/root",
+                target="/tmp/test/target/root",
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            ),
+            BackupPair(
+                name="test_home",
+                source="/tmp/test/source/home",
+                target="/tmp/test/target/home",
+                retention_days=14,
+                retention_count=15,
+                target_retention_days=90,
+                target_retention_count=20,
+            ),
         ]
 
         run_integration_test(
@@ -55,11 +60,15 @@ class TestMainOperations:
 
     def test_backup_no_snapshots_folder(self):
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": "/tmp/nonexistent/source/root",
-                "target": "/tmp/nonexistent/target/root",
-            }
+            BackupPair(
+                name="test_root",
+                source="/tmp/nonexistent/source/root",
+                target="/tmp/nonexistent/target/root",
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
         ]
 
         run_integration_test(
@@ -73,11 +82,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs([], [])
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
         ]
 
         run_integration_test(
@@ -91,11 +104,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs(["2025-08-16T10:00:00"], [])
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
         ]
 
         run_integration_test(
@@ -109,11 +126,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs(["2025-08-16T10:00:00"], ["2025-08-16T10:00:00"])
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
         ]
 
         run_integration_test(
@@ -127,11 +148,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs(["2025-08-16T10:00:00", "2025-08-16T11:00:00"], [])
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
         ]
 
         run_integration_test(
@@ -152,11 +177,15 @@ class TestMainOperations:
         )
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=30,
+                retention_count=10,
+                target_retention_days=90,
+                target_retention_count=20,
+            )
         ]
 
         run_integration_test(
@@ -168,15 +197,15 @@ class TestMainOperations:
 
     def test_purge_no_snapshots_folder(self):
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": "/tmp/nonexistent/source/root",
-                "target": "/tmp/nonexistent/target/root",
-                "retention_days": 7,
-                "retention_count": 2,
-                "target_retention_days": 30,
-                "target_retention_count": 5,
-            }
+            BackupPair(
+                name="test_root",
+                source="/tmp/nonexistent/source/root",
+                target="/tmp/nonexistent/target/root",
+                retention_days=7,
+                retention_count=2,
+                target_retention_days=30,
+                target_retention_count=5,
+            )
         ]
 
         run_integration_test(
@@ -190,15 +219,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs([], [])
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-                "retention_days": 7,
-                "retention_count": 2,
-                "target_retention_days": 30,
-                "target_retention_count": 5,
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=7,
+                retention_count=2,
+                target_retention_days=30,
+                target_retention_count=5,
+            )
         ]
 
         run_integration_test(
@@ -213,15 +242,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs([old_snapshot], [old_snapshot])
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-                "retention_days": 7,
-                "retention_count": 1,
-                "target_retention_days": 30,
-                "target_retention_count": 1,
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=7,
+                retention_count=1,
+                target_retention_days=30,
+                target_retention_count=1,
+            )
         ]
 
         run_integration_test(
@@ -240,15 +269,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs(old_snapshots, old_snapshots)
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-                "retention_days": 7,
-                "retention_count": 2,
-                "target_retention_days": 30,
-                "target_retention_count": 2,
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=7,
+                retention_count=2,
+                target_retention_days=30,
+                target_retention_count=2,
+            )
         ]
 
         run_integration_test(
@@ -268,15 +297,15 @@ class TestMainOperations:
         source_path, target_path = setup_test_dirs(mixed_snapshots, mixed_snapshots)
 
         backup_pairs = [
-            {
-                "name": "test_root",
-                "source": str(source_path),
-                "target": str(target_path),
-                "retention_days": 7,
-                "retention_count": 1,
-                "target_retention_days": 30,
-                "target_retention_count": 1,
-            }
+            BackupPair(
+                name="test_root",
+                source=str(source_path),
+                target=str(target_path),
+                retention_days=7,
+                retention_count=1,
+                target_retention_days=30,
+                target_retention_count=1,
+            )
         ]
 
         run_integration_test(

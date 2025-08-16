@@ -15,6 +15,8 @@ from types import TracebackType
 from typing import Any, Literal
 from unittest.mock import patch
 
+from src.config import BackupPair
+
 
 class MockableFormatter(logging.Formatter):
     """A logging formatter that allows mocking the time function.
@@ -100,19 +102,19 @@ class LogCapture:
         return self.stream.getvalue()
 
 
-def create_temp_config(backup_pairs: list[dict[str, Any]]) -> Path:
+def create_temp_config(backup_pairs: list[BackupPair]) -> Path:
     """Create a temporary configuration file."""
     config_content = "[global]\ndefault_verbose = false\ndry_run = false\n\n"
 
     for pair in backup_pairs:
         config_content += f"""[[backup_pairs]]
-name = "{pair["name"]}"
-source = "{pair["source"]}"
-target = "{pair["target"]}"
-retention_days = {pair.get("retention_days", 30)}
-retention_count = {pair.get("retention_count", 10)}
-target_retention_days = {pair.get("target_retention_days", 90)}
-target_retention_count = {pair.get("target_retention_count", 20)}
+name = "{pair.name}"
+source = "{pair.source}"
+target = "{pair.target}"
+retention_days = {pair.retention_days}
+retention_count = {pair.retention_count}
+target_retention_days = {pair.target_retention_days}
+target_retention_count = {pair.target_retention_count}
 
 """
 
@@ -191,7 +193,7 @@ def compare_with_reference(
 
 @contextmanager
 def integration_test_context(
-    backup_pairs: list[dict[str, Any]],
+    backup_pairs: list[BackupPair],
     operation: str,
     pair_or_all: str = "test_root",
     suffix: str | None = None,
@@ -248,7 +250,7 @@ def integration_test_context(
 
 def run_integration_test(
     test_name: str,
-    backup_pairs: list[dict[str, Any]],
+    backup_pairs: list[BackupPair],
     operation: str,
     pair_or_all: str = "test_root",
     suffix: str | None = None,

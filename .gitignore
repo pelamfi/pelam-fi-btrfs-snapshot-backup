@@ -48,7 +48,11 @@ env.bak/
 venv.bak/
 
 # IDE
-.vscode/
+# Exclude user-specific VS Code settings but keep shared project configuration
+.vscode/settings.json
+.vscode/extensions.json
+.vscode/c_cpp_properties.json
+.vscode/*.user
 .idea/
 *.swp
 *.swo

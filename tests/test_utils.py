@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import tempfile
 import time
 from collections.abc import Callable
@@ -56,7 +57,9 @@ class LogCapture:
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.handler.setLevel(level)
-        self.formatter = MockableFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        self.formatter = MockableFormatter(
+            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        )
         self.handler.setFormatter(self.formatter)
 
     def set_time_func(self, time_func: Callable[[], float]) -> None:
@@ -119,26 +122,64 @@ target_retention_count = {pair.get("target_retention_count", 20)}
     return Path(temp_file.name)
 
 
-def compare_with_reference(test_name: str, actual_output: str, test_dir: Path) -> None:
-    """Compare actual output with reference file, creating it if it doesn't exist."""
+def normalize_temp_paths(output: str, temp_base_paths: list[str]) -> str:
+    """Replace temporary directory paths in output with normalized placeholders.
+
+    Args:
+        output: The raw output string
+        temp_base_paths: List of temporary base paths to normalize (e.g., ["/tmp/tmpXXXXXX"])
+
+    Returns:
+        Output with temp paths replaced by [TEMP_FOLDER]
+    """
+
+    normalized = output
+    for temp_path in temp_base_paths:
+        # Replace the temp path with placeholder
+        # Use re.escape to handle any special regex characters in the path
+        pattern = re.escape(temp_path)
+        normalized = re.sub(pattern, "[TEMP_FOLDER]", normalized)
+
+    return normalized
+
+
+def compare_with_reference(
+    test_name: str,
+    actual_output: str,
+    test_dir: Path,
+    temp_paths_to_normalize: list[str] | None = None,
+) -> None:
+    """Compare actual output with reference file, creating it if it doesn't exist.
+
+    Args:
+        test_name: Name of the test for the reference file
+        actual_output: The actual output to compare
+        test_dir: Directory containing the references folder
+        temp_paths_to_normalize: Optional list of temporary paths to replace with [TEMP_FOLDER]
+    """
     reference_file = test_dir / "references" / f"{test_name}.txt"
 
     # Create references directory if it doesn't exist
     reference_file.parent.mkdir(exist_ok=True)
 
+    # Normalize temporary paths if provided
+    normalized_output = actual_output
+    if temp_paths_to_normalize:
+        normalized_output = normalize_temp_paths(actual_output, temp_paths_to_normalize)
+
     if not reference_file.exists():
-        # Create the reference file
-        reference_file.write_text(actual_output)
+        # Create the reference file with normalized output
+        reference_file.write_text(normalized_output)
         print(f"Created reference file: {reference_file}")
         return
 
     # Compare with existing reference
     expected_output = reference_file.read_text()
 
-    if actual_output != expected_output:
-        # Write actual output for debugging
+    if normalized_output != expected_output:
+        # Write actual output for debugging (normalized)
         actual_file = test_dir / "references" / f"{test_name}.actual.txt"
-        actual_file.write_text(actual_output)
+        actual_file.write_text(normalized_output)
 
         raise AssertionError(
             f"Output differs from reference file {reference_file}\n"

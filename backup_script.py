@@ -183,34 +183,31 @@ def _purge_location(
         logger.info(f"No snapshots found in {location}")
         return
 
-    # Calculate cutoff date
-    cutoff_date = datetime.now() - timedelta(days=retention_days)
+    # Sort snapshots by timestamp (newest first)
+    snapshots_by_age = sorted(snapshots, reverse=True)
 
-    # Find snapshots that are old enough to be candidates for deletion
-    old_snapshots: list[Snapshot] = []
-    for snapshot in snapshots:
-        if snapshot.timestamp < cutoff_date:
-            old_snapshots.append(snapshot)
+    # Protect the newest N snapshots (retention_count)
+    protected_snapshots = snapshots_by_age[:retention_count]
+    candidate_snapshots = snapshots_by_age[retention_count:]
 
-    if not old_snapshots:
+    if not candidate_snapshots:
         logger.info(
-            f"No old snapshots found in {location} (older than {retention_days} days)"
+            f"All snapshots in {location} are protected by retention count ({retention_count})"
         )
         return
 
-    # Sort old snapshots chronologically (oldest first)
-    old_snapshots.sort()
+    # Calculate cutoff date for age-based deletion
+    cutoff_date = datetime.now() - timedelta(days=retention_days)
 
-    # Apply retention count - keep the newest N snapshots even if they're old
+    # From the unprotected snapshots, delete those older than retention_days
     snapshots_to_delete: list[Snapshot] = []
-    if len(old_snapshots) > retention_count:
-        snapshots_to_delete = old_snapshots[
-            :-retention_count
-        ]  # Remove oldest, keep newest N
+    for snapshot in candidate_snapshots:
+        if snapshot.timestamp < cutoff_date:
+            snapshots_to_delete.append(snapshot)
 
     if not snapshots_to_delete:
         logger.info(
-            f"All old snapshots in {location} are protected by retention count ({retention_count})"
+            f"No snapshots in {location} are old enough to delete (older than {retention_days} days)"
         )
         return
 

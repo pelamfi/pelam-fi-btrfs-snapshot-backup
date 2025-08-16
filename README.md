@@ -194,28 +194,6 @@ Each `[[backup_pairs]]` section defines a source/target pair with:
 - `target_retention_days`: Days to keep backups in target location
 - `target_retention_count`: Minimum number of backups to keep in target (whichever is larger applies)
 
-## Raw examples for inspiration
-
-Not actual output for this program, but stored here to help initial dev:
-
-Example of raw command to send and receive btrfs snapshots:
-
-```bash
-btrfs send -p /btrfs/btrfs-subvolumes/root-backup/2025-07-06-unifi-stuff-works/ /btrfs/btrfs-subvolumes/root-backup/2025-08-11-backup/ | pv | btrfs receive /root/western-digital-red-backup/btrfs-subvolumes/root-backup/
-```
-
-Example of current snapshots:
-```bash
-ls /btrfs/btrfs-subvolumes/root-backup/
-2025-05-18-after-btrfs-subvol-reorg  2025-05-18-pre-upgrade  2025-07-06-post-upgrade  2025-07-06-unifi-stuff-works
-2025-05-18-pre-subvolume-reorg       2025-05-29-pre-upgrade  2025-07-06-pre-upgrade   2025-08-11-backup
-```
-
-Example command used to create current snapshots:
-```bash
-btrfs subvolume snapshot -r / /btrfs/btrfs-subvolumes/root-backup/$(printf '%(%F)T\n' -1)-post-upgrade
-```
-
 # Detailed operation
 
 The script will scan the source and target folder for snapshots and identify snapshots on each.

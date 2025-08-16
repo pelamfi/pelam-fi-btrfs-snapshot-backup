@@ -19,6 +19,18 @@ A Python-based tool for managing BTRFS snapshots and incremental backups using B
 ./build.sh
 ```
 
+## Project Structure
+
+```
+├── src/                    # Source code modules
+├── tests/                  # Test files and reference outputs
+├── docs/                   # Documentation
+├── backup_script.py        # Main entry point
+├── backup_config.toml      # Configuration file with comments
+├── build.sh               # Development setup and checks
+└── pyproject.toml          # Project dependencies and tool config
+```
+
 ## Usage
 
 The script operates on backup pairs defined in `backup_config.toml`:

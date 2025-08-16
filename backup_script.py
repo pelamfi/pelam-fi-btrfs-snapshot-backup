@@ -187,7 +187,7 @@ def _purge_location(
     snapshots_by_age = sorted(snapshots, reverse=True)
 
     # Protect the newest N snapshots (retention_count)
-    protected_snapshots = snapshots_by_age[:retention_count]
+    # protected_snapshots = snapshots_by_age[:retention_count]
     candidate_snapshots = snapshots_by_age[retention_count:]
 
     if not candidate_snapshots:

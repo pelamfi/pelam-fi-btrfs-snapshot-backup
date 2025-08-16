@@ -393,7 +393,11 @@ class TestMainOperations:
         # Expected result: Second snapshot sent with first as parent, third sent with second as parent
 
         source_path, target_path = setup_backup_test_dirs(
-            ["2025-08-16T10:00:00", "2025-08-16T11:00:00", "2025-08-16T12:00:00"],
+            [
+                "2025-08-16T12:00:00-foo-bar",
+                "2025-08-16T11:00:00-foo",
+                "2025-08-16T10:00:00",
+            ],
             ["2025-08-16T10:00:00"],
         )
 

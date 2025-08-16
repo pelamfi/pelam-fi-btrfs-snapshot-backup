@@ -15,7 +15,7 @@ import backup_script
 
 class TestMainOperations:
     """Test main operations using dry-run output and reference files."""
-    
+
     def test_snapshot_operation_single_pair(self):
         """Test snapshot operation for a single backup pair."""
         # Setup test data
@@ -30,15 +30,17 @@ class TestMainOperations:
                 "target_retention_count": 20,
             }
         ]
-        
+
         # Create temporary config
         config_path = create_temp_config(backup_pairs)
-        
+
         try:
             # Mock datetime to get consistent timestamps
-            with patch('backup_script.datetime') as mock_datetime:
-                mock_datetime.now.return_value.strftime.return_value = "2025-08-16T14:30:00"
-                
+            with patch("backup_script.datetime") as mock_datetime:
+                mock_datetime.now.return_value.strftime.return_value = (
+                    "2025-08-16T14:30:00"
+                )
+
                 # Capture logging output
                 with LogCapture() as log_capture:
                     # Mock sys.argv to simulate command line
@@ -51,26 +53,24 @@ class TestMainOperations:
                         "--verbose",
                         f"--config={config_path}",
                     ]
-                    
-                    with patch.object(sys, 'argv', test_args):
+
+                    with patch.object(sys, "argv", test_args):
                         result = backup_script.main()
-                    
+
                     assert result == 0
-                    
+
                     # Get the captured output
                     actual_output = log_capture.get_output()
-                    
+
                     # Compare with reference
                     test_dir = Path(__file__).parent
                     compare_with_reference(
-                        "snapshot_single_pair",
-                        actual_output,
-                        test_dir
+                        "snapshot_single_pair", actual_output, test_dir
                     )
         finally:
             # Clean up temporary config file
             config_path.unlink()
-    
+
     def test_snapshot_operation_all_pairs(self):
         """Test snapshot operation for all backup pairs."""
         # Setup test data with multiple pairs
@@ -86,17 +86,19 @@ class TestMainOperations:
                 "target": "/tmp/test/target/home",
                 "retention_days": 14,
                 "retention_count": 15,
-            }
+            },
         ]
-        
+
         # Create temporary config
         config_path = create_temp_config(backup_pairs)
-        
+
         try:
             # Mock datetime to get consistent timestamps
-            with patch('backup_script.datetime') as mock_datetime:
-                mock_datetime.now.return_value.strftime.return_value = "2025-08-16T14:30:00"
-                
+            with patch("backup_script.datetime") as mock_datetime:
+                mock_datetime.now.return_value.strftime.return_value = (
+                    "2025-08-16T14:30:00"
+                )
+
                 # Capture logging output
                 with LogCapture() as log_capture:
                     # Mock sys.argv to simulate command line
@@ -109,21 +111,19 @@ class TestMainOperations:
                         "--verbose",
                         f"--config={config_path}",
                     ]
-                    
-                    with patch.object(sys, 'argv', test_args):
+
+                    with patch.object(sys, "argv", test_args):
                         result = backup_script.main()
-                    
+
                     assert result == 0
-                    
+
                     # Get the captured output
                     actual_output = log_capture.get_output()
-                    
+
                     # Compare with reference
                     test_dir = Path(__file__).parent
                     compare_with_reference(
-                        "snapshot_all_pairs",
-                        actual_output,
-                        test_dir
+                        "snapshot_all_pairs", actual_output, test_dir
                     )
         finally:
             # Clean up temporary config file

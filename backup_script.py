@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from src.config import Config
@@ -41,7 +42,6 @@ def execute_snapshot_operation(config: Config, pair_name: str | None, suffix: st
             continue
             
         # Generate timestamp (will be mocked in tests)
-        from datetime import datetime
         timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         
         # Build snapshot name

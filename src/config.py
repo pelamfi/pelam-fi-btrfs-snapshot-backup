@@ -42,10 +42,9 @@ class Config:
             data = tomllib.load(f)
 
         global_config = GlobalConfig(**data.get("global", {}))
-        
+
         backup_pairs = [
-            BackupPair(**pair_data) 
-            for pair_data in data.get("backup_pairs", [])
+            BackupPair(**pair_data) for pair_data in data.get("backup_pairs", [])
         ]
 
         return cls(global_config=global_config, backup_pairs=backup_pairs)

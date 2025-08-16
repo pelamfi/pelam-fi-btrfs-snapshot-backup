@@ -95,21 +95,60 @@ def execute_backup_operation(
             logger.info(f"No snapshots found in source: {pair.source}")
             continue
 
-        # Convert to sets for efficient lookup
+        # Find the latest snapshot that exists in both source and target
         target_snapshot_names = {snap.name for snap in target_snapshots}
+        
+        # Find the latest common snapshot (latest timestamp that exists in both)
+        latest_common_snapshot: Snapshot | None = None
+        for snapshot in reversed(source_snapshots):  # Start from newest
+            if snapshot.name in target_snapshot_names:
+                latest_common_snapshot = snapshot
+                break
+
+        # Find the latest (newest) snapshot in the target regardless of whether it exists in source
+        latest_target_snapshot: Snapshot | None = None
+        if target_snapshots:
+            latest_target_snapshot = max(target_snapshots, key=lambda s: s.timestamp)
 
         # Determine which snapshots need to be backed up
+        # Only send snapshots that are newer than the latest target snapshot
+        # and that don't already exist in the target
         snapshots_to_send: list[Snapshot] = []
+        skipped_snapshots: list[Snapshot] = []
+        
         for snapshot in source_snapshots:
-            if snapshot.name not in target_snapshot_names:
+            if snapshot.name in target_snapshot_names:
+                # Already exists in target, skip
+                continue
+                
+            if latest_target_snapshot is None:
+                # No snapshots in target, can send all missing ones
                 snapshots_to_send.append(snapshot)
+            elif snapshot.timestamp > latest_target_snapshot.timestamp:
+                # Newer than latest target snapshot, safe to send
+                snapshots_to_send.append(snapshot)
+            else:
+                # Older than latest target snapshot, would break parent chain
+                skipped_snapshots.append(snapshot)
+
+        # Log warnings about skipped snapshots
+        for snapshot in skipped_snapshots:
+            logger.warning(
+                f"Skipping snapshot '{snapshot.name}' - older than latest target snapshot "
+                f"'{latest_target_snapshot.name if latest_target_snapshot else 'none'}' "
+                f"and would break parent chain"
+            )
 
         if not snapshots_to_send:
-            logger.info(f"Backup is up to date for pair '{pair.name}'")
+            if skipped_snapshots:
+                logger.info(f"No snapshots to send for pair '{pair.name}' (some were skipped due to parent chain issues)")
+            else:
+                logger.info(f"Backup is up to date for pair '{pair.name}'")
             continue
 
         # Send snapshots with proper parent relationships
-        previous_snapshot: str | None = None
+        previous_snapshot = latest_common_snapshot.name if latest_common_snapshot else None
+        
         for snapshot in snapshots_to_send:
             snapshot_path = f"{pair.source}/{snapshot.name}"
 

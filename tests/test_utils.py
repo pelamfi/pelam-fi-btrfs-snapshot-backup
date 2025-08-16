@@ -57,9 +57,7 @@ class LogCapture:
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.handler.setLevel(level)
-        self.formatter = MockableFormatter(
-            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-        )
+        self.formatter = MockableFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
         self.handler.setFormatter(self.formatter)
 
     def set_time_func(self, time_func: Callable[[], float]) -> None:

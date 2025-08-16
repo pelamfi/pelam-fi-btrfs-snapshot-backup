@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -63,6 +65,34 @@ def execute_snapshot_operation(config: Config, pair_name: str | None, suffix: st
         logger.info(f"Created snapshot for pair '{pair.name}': {snapshot_path}")
 
 
+def scan_snapshots(directory: str | Path) -> list[str]:
+    """Scan a directory for BTRFS snapshots and return them sorted by name.
+    
+    Returns a list of snapshot directory names sorted chronologically.
+    Only includes directories that match the timestamp pattern.
+    """
+    try:
+        if not os.path.exists(directory):
+            return []
+            
+        # Pattern for snapshot names: YYYY-MM-DDTHH:MM:SS or YYYY-MM-DD-suffix
+        snapshot_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}')
+        
+        snapshots: list[str] = []
+        for item in os.listdir(directory):
+            item_path = os.path.join(directory, item)
+            if os.path.isdir(item_path) and snapshot_pattern.match(item):
+                snapshots.append(item)
+        
+        # Sort snapshots chronologically by name 
+        # (timestamp format ensures lexicographic sorting = chronological sorting)
+        return sorted(snapshots)
+        
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"Error scanning snapshots in {directory}: {e}")
+        return []
+
+
 def execute_backup_operation(config: Config, pair_name: str | None, dry_run: bool) -> None:
     """Execute backup operation."""
     logger = logging.getLogger(__name__)
@@ -79,20 +109,47 @@ def execute_backup_operation(config: Config, pair_name: str | None, dry_run: boo
         if pair is None:
             continue
             
-        # TODO: Scan for existing snapshots and determine parent relationships
-        # For now, just log what would happen
-        
         logger.info(f"Processing backup for pair '{pair.name}'")
         logger.info(f"Source: {pair.source} -> Target: {pair.target}")
         
-        # Mock example of incremental backup command
-        cmd = f"btrfs send -p {pair.source}/previous-snapshot {pair.source}/latest-snapshot | btrfs receive {pair.target}/"
+        # Scan for snapshots in source and target
+        source_snapshots = scan_snapshots(pair.source)
+        target_snapshots = scan_snapshots(pair.target)
         
-        if dry_run:
-            logger.info(f"[DRY-RUN] Would execute: {cmd}")
-        else:
-            logger.info(f"Executing: {cmd}")
-            # TODO: Actually execute the command
+        if not source_snapshots:
+            logger.info(f"No snapshots found in source: {pair.source}")
+            continue
+            
+        # Determine which snapshots need to be backed up
+        snapshots_to_send: list[str] = []
+        for snapshot in source_snapshots:
+            if snapshot not in target_snapshots:
+                snapshots_to_send.append(snapshot)
+        
+        if not snapshots_to_send:
+            logger.info(f"Backup is up to date for pair '{pair.name}'")
+            continue
+            
+        # Send snapshots with proper parent relationships
+        previous_snapshot: str | None = None
+        for snapshot in snapshots_to_send:
+            snapshot_path = f"{pair.source}/{snapshot}"
+            
+            if previous_snapshot is None:
+                # First snapshot or initial backup - no parent
+                cmd = f"btrfs send {snapshot_path} | btrfs receive {pair.target}/"
+            else:
+                # Use previous snapshot as parent
+                parent_path = f"{pair.source}/{previous_snapshot}"
+                cmd = f"btrfs send -p {parent_path} {snapshot_path} | btrfs receive {pair.target}/"
+            
+            if dry_run:
+                logger.info(f"[DRY-RUN] Would execute: {cmd}")
+            else:
+                logger.info(f"Executing: {cmd}")
+                # TODO: Actually execute the command
+            
+            previous_snapshot = snapshot
 
 
 def execute_purge_operation(config: Config, pair_name: str | None, dry_run: bool) -> None:

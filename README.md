@@ -52,6 +52,27 @@ The script operates on backup pairs defined in `backup_config.toml`:
 ./backup_script.py --dry-run --verbose --config=/path/to/config.toml
 ```
 
+## Command line help
+
+```
+ ./backup_script.py --help
+usage: backup_script.py [-h] (--snapshot | --backup | --purge) (--pair PAIR | --all) [--suffix SUFFIX] [-v] [--dry-run] [--config CONFIG]
+
+BTRFS Snapshot Backup Tool
+
+options:
+  -h, --help       show this help message and exit
+  --snapshot       Create a new snapshot
+  --backup         Backup snapshots to target
+  --purge          Remove old snapshots according to retention policy
+  --pair PAIR      Target specific backup pair by name
+  --all            Target all configured backup pairs
+  --suffix SUFFIX  Suffix to add to snapshot name (for --snapshot only)
+  -v, --verbose    Enable verbose output
+  --dry-run        Show what would be done without executing
+  --config CONFIG  Path to configuration file (default: backup_config.toml)
+```
+
 ## Configuration
 
 Uses TOML format for human-readable configuration. See [backup_config.toml](./backup_config.toml) for a commented example.

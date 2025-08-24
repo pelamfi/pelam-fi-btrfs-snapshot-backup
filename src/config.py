@@ -12,6 +12,7 @@ class BackupPair:
     """Configuration for a source/target backup pair."""
 
     name: str
+    original_volume: str
     source: str
     target: str
     retention_days: int

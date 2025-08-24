@@ -12,6 +12,7 @@ def test_backup_pair_creation():
     """Test BackupPair creation."""
     pair = BackupPair(
         name="test",
+        original_volume="/",
         source="/source",
         target="/target",
         retention_days=30,
@@ -20,6 +21,7 @@ def test_backup_pair_creation():
         target_retention_count=20,
     )
     assert pair.name == "test"
+    assert pair.original_volume == "/"
     assert pair.source == "/source"
     assert pair.target == "/target"
 
@@ -40,6 +42,7 @@ dry_run = false
 
 [[backup_pairs]]
 name = "test_pair"
+original_volume = "/test/volume"
 source = "/test/source"
 target = "/test/target"
 retention_days = 15
@@ -60,14 +63,15 @@ target_retention_count = 15
 
         pair = config.backup_pairs[0]
         assert pair.name == "test_pair"
+        assert pair.original_volume == "/test/volume"
         assert pair.source == "/test/source"
         assert pair.retention_days == 15
 
 
 def test_get_backup_pair():
     """Test getting backup pair by name."""
-    pair1 = BackupPair("pair1", "/src1", "/tgt1", 30, 10, 90, 20)
-    pair2 = BackupPair("pair2", "/src2", "/tgt2", 15, 5, 45, 15)
+    pair1 = BackupPair("pair1", "/", "/src1", "/tgt1", 30, 10, 90, 20)
+    pair2 = BackupPair("pair2", "/home", "/src2", "/tgt2", 15, 5, 45, 15)
 
     config = Config(GlobalConfig(), [pair1, pair2])
 

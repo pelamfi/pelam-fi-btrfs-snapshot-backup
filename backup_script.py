@@ -88,8 +88,8 @@ def execute_snapshot_operation(
 
         snapshot_path = f"{pair.source}/{snapshot_name}"
 
-        # Build the btrfs command
-        cmd = f"btrfs subvolume snapshot -r {pair.source} {snapshot_path}"
+        # Build the btrfs command - snapshot the original volume into the source directory
+        cmd = f"btrfs subvolume snapshot -r {pair.original_volume} {snapshot_path}"
 
         if dry_run:
             logger.info(f"[DRY-RUN] Would execute: {cmd}")

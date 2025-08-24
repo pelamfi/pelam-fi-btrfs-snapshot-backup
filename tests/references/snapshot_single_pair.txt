@@ -1,4 +1,4 @@
 2025-08-16 14:30:00 - INFO - Loaded configuration with 1 backup pairs
-2025-08-16 14:30:00 - INFO - [DRY-RUN] Would execute: btrfs subvolume snapshot -r /tmp/test/source/root /tmp/test/source/root/2025-08-16T14:30:00-test-snapshot
+2025-08-16 14:30:00 - INFO - [DRY-RUN] Would execute: btrfs subvolume snapshot -r /tmp/test/volume/root /tmp/test/source/root/2025-08-16T14:30:00-test-snapshot
 2025-08-16 14:30:00 - INFO - Created snapshot for pair 'test_root': /tmp/test/source/root/2025-08-16T14:30:00-test-snapshot
 2025-08-16 14:30:00 - INFO - Operation completed successfully

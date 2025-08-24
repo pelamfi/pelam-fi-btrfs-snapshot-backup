@@ -11,6 +11,7 @@ class TestMainOperations:
         backup_pairs = [
             BackupPair(
                 name="test_root",
+                original_volume="/tmp/test/volume/root",
                 source="/tmp/test/source/root",
                 target="/tmp/test/target/root",
                 retention_days=30,
@@ -31,6 +32,7 @@ class TestMainOperations:
     def test_snapshot_operation_all_pairs(self):
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source="/tmp/test/source/root",
                 target="/tmp/test/target/root",
@@ -40,6 +42,7 @@ class TestMainOperations:
                 target_retention_count=20,
             ),
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_home",
                 source="/tmp/test/source/home",
                 target="/tmp/test/target/home",
@@ -61,6 +64,7 @@ class TestMainOperations:
     def test_backup_no_snapshots_folder(self):
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source="/tmp/nonexistent/source/root",
                 target="/tmp/nonexistent/target/root",
@@ -75,7 +79,7 @@ class TestMainOperations:
             "backup_no_snapshots_folder",
             backup_pairs,
             "backup",
-            expected_result=None,  # Don't check return code for error cases
+            expected_exit_code=None,  # Don't check return code for error cases
         )
 
     def test_backup_no_snapshots_in_either(self):
@@ -83,6 +87,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -105,6 +110,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -127,6 +133,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -149,6 +156,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -178,6 +186,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -219,6 +228,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -239,6 +249,7 @@ class TestMainOperations:
     def test_purge_no_snapshots_folder(self):
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source="/tmp/nonexistent/source/root",
                 target="/tmp/nonexistent/target/root",
@@ -253,7 +264,7 @@ class TestMainOperations:
             "purge_no_snapshots_folder",
             backup_pairs,
             "purge",
-            expected_result=None,
+            expected_exit_code=None,
         )
 
     def test_purge_no_snapshots_in_either(self):
@@ -261,6 +272,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -284,6 +296,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -311,6 +324,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),
@@ -339,6 +353,7 @@ class TestMainOperations:
 
         backup_pairs = [
             BackupPair(
+                original_volume="/tmp/test/volume",
                 name="test_root",
                 source=str(source_path),
                 target=str(target_path),

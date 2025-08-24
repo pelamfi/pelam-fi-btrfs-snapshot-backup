@@ -109,6 +109,7 @@ def create_temp_config(backup_pairs: list[BackupPair]) -> Path:
     for pair in backup_pairs:
         config_content += f"""[[backup_pairs]]
 name = "{pair.name}"
+original_volume = "{pair.original_volume}"
 source = "{pair.source}"
 target = "{pair.target}"
 retention_days = {pair.retention_days}
@@ -241,9 +242,9 @@ def integration_test_context(
                 log_capture.set_time_func(lambda: fixed_log_time)
 
                 with patch.object(sys, "argv", test_args):
-                    result = backup_script.main()
+                    main_exit_code = backup_script.main()
 
-                yield result, log_capture.get_output()
+                yield main_exit_code, log_capture.get_output()
     finally:
         config_path.unlink()
 
@@ -255,7 +256,7 @@ def run_integration_test(
     pair_or_all: str = "test_root",
     suffix: str | None = None,
     temp_paths_to_normalize: list[str] | None = None,
-    expected_result: int | None = 0,
+    expected_exit_code: int | None = 0,
 ) -> None:
     """Run a standard integration test with reference comparison."""
     test_dir = Path(__file__).parent
@@ -264,9 +265,11 @@ def run_integration_test(
         result,
         output,
     ):
-        if expected_result is not None:
-            assert result == expected_result
         compare_with_reference(test_name, output, test_dir, temp_paths_to_normalize)
+        # Compare this last, because the logs show in compare_with_reference are much more informative than result
+        # code.
+        if expected_exit_code is not None:
+            assert result == expected_exit_code
 
 
 def create_snapshot_dirs(base_path: Path, snapshot_names: list[str]) -> None:

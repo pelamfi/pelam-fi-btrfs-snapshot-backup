@@ -6,6 +6,7 @@ dry_run = false         # Enable dry-run mode by default
 # Each backup pair defines a source/target relationship
 [[backup_pairs]]
 name = "root_system"
+original_volume = "/"                           # Original BTRFS volume to snapshot
 source = "/btrfs/btrfs-subvolumes/root"    # Source BTRFS subvolume path
 target = "/backup/btrfs-subvolumes/root"   # Target backup location
 retention_days = 30      # Days to keep snapshots in source
@@ -15,6 +16,7 @@ target_retention_count = 20   # Minimum backups to keep in target
 
 [[backup_pairs]]
 name = "home_directories"
+original_volume = "/home"                      # Original BTRFS volume to snapshot
 source = "/btrfs/btrfs-subvolumes/home"
 target = "/backup/btrfs-subvolumes/home"
 retention_days = 14

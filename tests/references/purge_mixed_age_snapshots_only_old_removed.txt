@@ -1,6 +1,7 @@
 2025-08-16 14:30:00 - INFO - Loaded configuration with 1 backup pairs
 2025-08-16 14:30:00 - INFO - Processing purge for pair 'test_root'
 2025-08-16 14:30:00 - INFO - Retention policy: 7 days, 1 snapshots
+2025-08-16 14:30:00 - INFO - [DRY-RUN] Would execute: btrfs subvolume delete [TEMP_FOLDER]/source/2025-08-15T10:00:00-recent
 2025-08-16 14:30:00 - INFO - [DRY-RUN] Would execute: btrfs subvolume delete [TEMP_FOLDER]/source/2025-07-02T10:00:00-old
 2025-08-16 14:30:00 - INFO - [DRY-RUN] Would execute: btrfs subvolume delete [TEMP_FOLDER]/source/2025-07-01T10:00:00-very-old
 2025-08-16 14:30:00 - INFO - [DRY-RUN] Would execute: btrfs subvolume delete [TEMP_FOLDER]/target/2025-07-02T10:00:00-old

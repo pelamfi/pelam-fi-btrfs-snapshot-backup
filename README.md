@@ -54,7 +54,7 @@ The script operates on backup pairs defined in `backup_config.toml`:
 
 ## Configuration
 
-Uses TOML format for human-readable configuration. See `backup_config.toml` for a commented example.
+Uses TOML format for human-readable configuration. See [backup_config.toml](./backup_config.toml) for a commented example.
 
 Key concepts:
 - Each backup pair has independent retention policies
@@ -63,7 +63,7 @@ Key concepts:
 
 ## Development
 
-Run `./build.sh` for formatting, linting, and testing. See `docs/testing-approach.md` for details on the reference-based testing system.
+Run [./build.sh](./build.sh) for formatting, linting, and testing. See [testing-approach.md](./docs/testing-approach.md) for details on the reference-based testing system.
 
 ## Technical Notes
 

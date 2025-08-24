@@ -1,12 +1,11 @@
 # Testing Approach
 
 ## Reference-Based Integration Testing
-
-The project uses a sophisticated reference-based testing approach that captures the complete dry-run output of operations and compares it against stored reference files. This approach provides:
+The project uses a reference-based testing approach that captures the complete dry-run output of operations and compares it against stored reference files. This approach provides:
 
 - **Complete integration testing** - Tests the full command-line interface and logging output
 - **Deterministic results** - Fixed timestamps ensure consistent test output  
-- **Easy verification** - Human-readable reference files show exactly what the tool does
+- **Easy verification** - Human-readable reference files show exactly what the tool does in each test scenario
 - **Simple maintenance** - Reference files can be updated when behavior changes intentionally
 
 ## How Reference Testing Works

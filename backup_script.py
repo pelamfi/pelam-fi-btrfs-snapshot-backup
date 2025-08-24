@@ -249,7 +249,7 @@ def _purge_location(
     logger: logging.Logger,
 ) -> None:
     """Purge old snapshots from a specific location based on retention policy."""
-    from datetime import datetime, timedelta
+    from datetime import timedelta
 
     # Scan for snapshots
     snapshots = scan_snapshots(location)

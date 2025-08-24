@@ -9,6 +9,7 @@ import tempfile
 import time
 from collections.abc import Callable
 from contextlib import contextmanager
+from datetime import datetime
 from io import StringIO
 from pathlib import Path
 from types import TracebackType
@@ -236,7 +237,11 @@ def integration_test_context(
 
         # Mock datetime and capture logs
         with patch("backup_script.datetime") as mock_datetime:
-            mock_datetime.now.return_value.strftime.return_value = fixed_timestamp
+            # Create a real datetime object for the fixed time
+            fixed_datetime = datetime.strptime("2025-08-16 14:30:00", "%Y-%m-%d %H:%M:%S")
+
+            # Set up mocks - use the real datetime for calculations but mock strftime
+            mock_datetime.now.return_value = fixed_datetime
 
             with LogCapture() as log_capture:
                 log_capture.set_time_func(lambda: fixed_log_time)
